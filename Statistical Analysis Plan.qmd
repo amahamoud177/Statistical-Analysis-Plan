@@ -1,0 +1,290 @@
+---
+title: "Statistical Analysis Plan"
+format: html
+editor: visual
+---
+
+# Background
+In this statistical analysis plan, the data set that is to be investigated is the metadata of artworks from the Tate Art Museum. The data set consists of 70,000 pieces of artwork. The variables of interest for the problems are *width*, *thumbnailCopyright*, *medium*, *year* and *height*. The aim for each proposed question is to investigate the relationships between these variables. These include whether artwork width differs according to copyright status, whether medium is associated with thumbnail copyright status, whether year of creation explains variation in artwork width, and whether width can be explained by a combination of temporal, dimensional and copyright-related variables. 
+
+# Research Questions
+
+## Group Comparison: Does artwork width differ according to thumbnail copyright status?
+
+### Research Aim
+
+In this research question, the variables we aim to investigate are *width* and *thumbnailCopyright*. The aim is to investigate whether there are differences in artwork between artwork width and copyright status groups. In this question, it is a comparison of groups with *width* as the outcome and *thumbnailCopyright* as the grouping variable.
+
+### Variables and Data types
+
+In this analysis, the variables we are analysing are *width* and *thumbnailCopyright*. *width* is a numeric variable which represents the physical width of the artwork and *thumbnailCopyright* is a categorical variable that indicates the copyright status of the artwork. Although the variable is a character vector, it will be converted into a factor so that it can be accurately represented for group based analysis.
+
+### Data Preparation
+
+In the data preparation phase, the data set would be loaded into R and the variables we need for analysis would be selected. In this case, it would *width* and *thumbnailCopyright*.
+
+```{r}
+artworks <- read.csv("data/artwork_data.csv")
+
+artwork_width <- artworks$width
+artwork_copyright <- artworks$thumbnailCopyright
+```
+
+After selecting the correct variables, the data would be inspected for any missing values as missing values can skew the analysis. It would also allow us to see if the variables from the data set were loaded correctly. The way we can handle this missing data is either using *na.rm = TRUE* when computing statistics or removing the missing values altogether for a thorough analysis through the use of *na.omit()*.
+
+```{r}
+artwork_width <- artworks$width
+artwork_copyright <- artworks$thumbnailCopyright
+
+is.na(artwork_width)
+is.na(artwork_copyright)
+na.omit(artwork_width)
+na.omit(artwork_copyright)
+```
+
+Using *na.omit()* it allows us to remove the missing values and create a thorough analysis of the data set. After loading the data set and selecting the correct variables, the data types must be checked to see if they are compatible with the analysis. Despite *width* being numeric values, R loads it in as a character vector. R also loads *thumbnailCopyright* as a character vector. For an accurate analysis, *width* will be converted to numeric using *as.numeric()* and *thumbnailCopyright* will be converted into a factor using *factor()*
+
+```{r}
+class(artworks$width)
+class(artworks$thumbnailCopyright)
+
+artwork_width <- as.numeric(artworks$width)
+artwork_copyright <- factor(artworks$thumbnailCopyright)
+```
+
+During the conversion when *width* was converted to numeric, NAs were introduced by coercion. This implies that some values in *width* were not numeric. After converting and cleaning *width* and *thumbnailCopyright*, the distributions will be inspected for any potential outliers. Histograms and summary statistics will be used to evaluate the overall distribution. The histogram will be used to assess the distribution of the numeric values of *width* as they allow for the spread and skewness to be observed and a box plot will be used to inspect the distribution of *width* separated by *thumbnailCopyright* which can allow for the spread and group differences to observed.
+
+### Proposed Method
+
+After preparing the data, a statistical method that is appropriate for group comparison will be selected to assess whether artwork width differs according to thumbnail copyright status. The statistical method that is most appropriate for a group comparison is Welch's t-test as it allows for the mean width of two independent groups to be analysed. One of the major advantages for using Welch's t-test over a two sample t-test is that Welch's t-test doesn't assume equal variances between groups. This makes the method more appropriate when groups vary or samples sizes differ between copyright categories. Because *thumbnailCopyright* is made up of many different groups, *thumbnailCopyright* would have to be split into present or absent information to allow for Welch t-test to work effectively.
+
+### Assumptions
+
+Welch's t-test assumes that each observation is independent from one another to ensure that each observation doesn't influence one another. Another assumption made is that the dependent variable (*width*) is a continuous numeric value which allows for a comparison between groups. For Welch's t-test, the distribution is assumed to be normal (Bruce et al., 2020). *width* is right skewed meaning that the data clusters around the lower values but a few large outliers move the shape to the right. Welch's t-test can also work with non normal distributions if a sample size is large enough due to central limit theorem.
+
+### Diagnostics and Model Checks
+
+In this section, diagnostics will be conducted to see if Welch's t-test is appropriate for this analysis. Using *hist()*, a histogram of *width* can be created to see the distribution.
+
+```{r}
+hist(artwork_width)
+```
+
+The distribution shape for *width* is right skewed meaning that the data has lower values but a few large values extend the shape. Welch's t-test is fairly robust and allows for non normal distributions to be used and can be used for analysis. A boxplot can be used to compare the distribution of *width* with *thumbnailCopyright* as the grouping variable and *width* as the continuous outcome.
+
+```{r}
+boxplot(artwork_copyright)
+```
+
+The distribution shows that many groups cluster at a similar range implying that there isn't much variance between the groups. However, there are some groups that have many observations or fewer observations implying unequal variance. Welch's t-test would be appropriate as it assumes unequal variance.
+
+### Fallback Strategy
+
+In the case that Welch's t-test is inappropriate due to skewness or strong outliers for this analysis, an alternative statistical method can be used. If *thumbnailCopyright* is left as a multiple group variable, a test like Welch's ANOVA might be more appropriate as it allows for the means of multiple groups to be compared (Bruce et al., 2020).
+
+## Relationship between Categorical Variables: Is the type of medium related to thumbnail status?
+
+### Research Aim
+
+In this research question, the variables we aim to investigate are *medium* and *thumbnailCopyright*. The aim is to investigate whether there is a relationship between the medium in which the artwork is produced and it's copyright status. In this question, the analysis is to see if *medium* and *thumbnailCopyright* are independent of each other.
+
+### Variables and Data Types
+
+In this analysis, the variables we are analysing are *medium* and *thumbnailCopyright*. Both *medium* and *thumbnailCopyright* are categorical variables. *medium* represents the method in which the artwork was produced and *thumbnailCopyright* represents the copyright status of the artwork. Both variables may include many groups and may require collapsing or grouping.
+
+### Data Preparation
+
+In the data preparation section of this analysis, the data set would be loaded into R and the variables being investigated will be selected and converted into factors.
+
+```{r}
+artworks <- read.csv("data/artwork_data.csv")
+
+artwork_medium <- factor(artworks$medium)
+artwork_copyright <- factor(artworks$thumbnailCopyright)
+```
+
+The variables would then be inspected for any missing values to ensure that it doesn't affect the analysis. Because *medium* and *thumbnailCopyright* are categorical variables, the *table()* function will be used to create a frequency table in which the distributions can be assessed. This allows us to see if there any categories that may need grouping or collapsing.
+
+```{r}
+artworks <- read.csv("data/artwork_data.csv")
+
+artwork_medium <- factor(artworks$medium)
+artwork_copyright <- factor(artworks$thumbnailCopyright)
+
+is.na(artwork_medium)
+is.na(artwork_copyright)
+
+table(artwork_medium)
+table(artwork_copyright)
+
+class(artwork_medium)
+class(artwork_copyright)
+```
+
+### Proposed Method
+
+After selecting and preparing the variables for analysis, a statistical method will be selected to investigate the research aim. The method that is most appropriate for an analysis between *medium* and *thumbnailCopyright* is a chi-square test of independence. A chi-square test of independence is appropriate as it is used to compare the relationship between categorical variables. The test compares the difference between the expected frequency and the actual frequency (Agresti., 2018).
+
+### Assumptions
+
+The chi-square test of independence assumes that both variables are categorical. Another assumption is that each observation is independent from one another. It expects each artwork to appear only once and belong to a single category. Another assumption to be made is that the expected frequency count must be larger than 5 as if the sample size is too small, the chi-square expected distribution may be unreliable (Agresti., 2018).
+
+### Diagnostics and Model Checks
+
+In this section, diagnostics will be conducted to assess if the chi-square of independence is the correct method for this analysis. A contingency table will be made consisting of the variables *medium* and *thumbnailCopyright*.
+
+```{r}
+artwork_contingency <- table(artwork_medium, artwork_copyright)
+```
+
+Investigating the contingency table, it shows us that *medium* and *thumbnailCopyright* contain a large number of categories resulting in a contingency table that is highly sparse. This goes against the assumption that each expected frequency should be larger than 5. This results in many of these categories having low expected frequencies. One way to amend this is to group the data to allow for more useful categories. A bar chart will also be created to visually represent the categories but because both variables have too many categories, it makes it problematic.
+
+```{r}
+artwork_contingency <- table(artwork_medium, artwork_copyright)
+artwork_bar <- barplot(artwork_contingency)
+```
+
+### Fallback Strategy
+
+In the event that a chi-square test of independence is inappropriate for this analysis, a fallback strategy will be implemented. Because *medium* and *thumbnailCopyright* have many categories, it makes the test unreliable. One approach that can be used is to group the categories into more meaningful categories and allow for the frequencies to reach the minimum expected frequencies of 5 for the test to be accurate. Categories such as "10 photo-etchings on paper" and "10 photographs, black and white on paper" in the *medium* variable will be combined into a single category called "10 photographs" to reduce sparsity and so that categories can meet the expected frequency threshold to allow for an accurate chi-square test of independence (Agresti., 2018).
+
+## Continuous Outcome and One Explanatory Variable: Does year of creation explain variation in artwork width?
+
+### Research Aim
+
+In this research question, the aim is to investigate whether there is a relationship between the year of creation and artwork width. In this analysis, *width* is a continuous outcome variable and *year* is the explanatory variable. They will be used to analyse whether variation in artwork width can explained by the year in which the artwork is created.
+
+### Variables and Data Types
+
+In this analysis, the variables that are to be examined are *year* and *width*. *width* is a continuous outcome numeric variable that represents the physical width of the artwork. *year* is a numeric explanatory variable that represents the year in which an artwork was created. As both of these variables are numeric, a model that can predict outcomes, such as linear regression, can be used to achieve the research aim.
+
+### Data Preparation
+
+For the data preparation, the data set will be loaded into R and *year* and *width* will be extracted. *year* and *width* will be converted into numeric vectors as R reads both variables as character variables. Once the variables have been extracted and converted, they will be checked for any missing variables. The missing variables will be omitted to allow for a thorough analysis and a new data frame will be created consisting of all the cleaned variables. A summary table will also be created to check for any obvious outliers
+
+```{r}
+artworks <- read.csv("data/artwork_data.csv")
+
+artwork_width <- as.numeric(artworks$width)
+artwork_year <- as.numeric(artworks$year)
+
+is.na(artwork_width)
+is.na(artwork_year)
+
+class(artwork_width)
+class(artwork_year)
+
+clean_table <- na.omit(data.frame(year = artwork_year, width = artwork_width))
+
+summary(clean_table)
+```
+
+### Proposed Method
+
+After preparing the data, a statistical model capable of examining the relationship between a continuous outcome variable and an explanatory variable will be selected for analysis. The method that will be used for this is a simple linear regression model. This method is suitable as it allows for predictions to be made from *year* and *width* as they are continuous and explanatory respectively. The model can be used to estimate the relationship between width and year through the use of a fitted regression line. A scatter plot with the regression line will be used to visually examine the pattern (James et al., 2013)
+
+### Assumptions
+
+The assumptions to be made for the simple linear regression model is that both variables are numeric and either one of the variables are continuous or explanatory. Another assumption to be made is that the relationship between *width* and *year* are linear. The way to examine if the data is linear or not is to if there is any curvature in the mean structure. Another assumption to be made about the model is homoscedasticity which means that residuals have a constant variance. Another assumption to be made is that the artwork are all independent of one another and shouldn't influence each other. Another assumption to be made is that the normality of the residuals. Although this is a large data set and regression is robust, the normality of the residuals matters as it can affect the validity of the confidence intervals and give incorrect p-values (James et al., 2013).
+
+### Diagnostics and Model Checks
+
+In this section, diagnostics will be carried out to assess if simple linear regression is appropriate for this analysis. A scatterplot of *year* and *width* was created with a fitted regression line. In the plot we can see that the data has mostly congregated to the end of the x axis. Investigating this further using *summary()* on both variables, it shows us that there are extreme outliers that cause *width* to become right skewed. In contrast, *year* appears to be more evenly distributed. This model also shows heteroscedasticity which suggests that there is unequal variance in the variables, namely *width*. One way to solve this issue is to use a log transformation on *width* to gain equal variance of the residuals. The model also shows curvature which goes against the assumption that the data is linear. This implies that the model may not be able to capture the relationship between *width* and *year*.
+
+```{r}
+clean_table <- na.omit(data.frame(year = artwork_year, width = artwork_width))
+
+clean_table$log_width <- log(clean_table$width)
+
+model <- lm(clean_table$log_width ~ clean_table$year)
+
+
+plot(model, which = 1)
+
+abline(model)
+
+summary(clean_table$width)
+summary(clean_table$year)
+```
+
+### Fallback strategy
+
+In the case of the simple regression model being inappropriate for this analysis, a fallback strategy will be implemented. As the model shows evidence of curvature, we can negate this by using log transformation to satisfy the assumption and reduce the right skewness (James et al., 2013). The model also shows strong heteroscedasticity which can be also remedied through log transformations. Another way to remedy this would be to use a different model family.
+
+## Continuous Outcome and Multiple Explanatory Variables: Can artwork width be explained by a combination of temporal, dimensional, and copyright-related variables?
+
+### Research Aim
+
+In this research question, the aim is to investigate whether artwork width can be explained by a mixture of temporal, dimensional and copyright-related variables. The variables that will be investigated are *width*, *year*, *height* and *thumbnailCopyright*. *width* is a continuous outcome variable while *year* and *height* are the continuous predictors. *thumbnailCopyright* is the categorical predictor. A method capable of analysing mixed variable types and multiple predictors would be needed to reach this research aim.
+
+### Variables and Data Types
+
+The variables in this research question to be examined are *width*, *year*, *height* and *thumbnailCopyright*. *width* and *height* represent the physical dimensions of the artwork. *width* is a numeric continuous outcome variable whereas *height* is a continuous numeric predictor. *year* represents the year in which the artwork was created ad is also a continuous predictor. *thumbnailCopyright* is a categorical variable that represents the copyright status of the artwork. As this analysis involves multiple variable types, a statistical model capable of analysing multiple predictors will be required.
+
+### Data Preparation
+
+In the data preparation phase of this analysis, the data set will be loaded into R and the variables that will be investigated will be selected. Once the variables have been selected, they will be converted into their respective data types for analysis. The variables *width*, *height* and *year* will be converted to numeric and *thumbnailCopyright* will be converted to a factor. Missing values will be handled by omitting the missing data to ensure for a throrough analysis and preserve the relationship between the variabls. Once the data has been prepared, a data frame containing all the cleaned data will be made so that it can be analysed.
+
+```{r}
+artworks <- read.csv("data/artwork_data.csv")
+
+artwork_width <- as.numeric(artworks$width)
+artwork_year <- as.numeric(artworks$year)
+artwork_height <- as.numeric(artworks$height)
+artwork_copyright <- factor(artworks$thumbnailCopyright)
+
+is.na(artwork_width)
+is.na(artwork_year)
+is.na(artwork_height)
+is.na(artwork_copyright)
+
+multiple_reg_table <- na.omit(data.frame(width = artwork_width,
+                                         year = artwork_year,
+                                         height = artwork_height,
+                                         copyright = artwork_copyright))
+
+summary(multiple_reg_table)
+```
+
+### Proposal Method
+
+The proposed method to analyse a mixture of a continuous outcome variable, continuous variables predictors and a categorical predictor would be a multiple regression model. A multiple regression model is used to compare the relationship between a continuous outcome and multiple explanatory variables (James et al., 2021). In this analysis, *width* is the continuous outcome variable while *year*, *height* and *thumbnailCopyright* are the explanatory variables. The model can be used to explain the relationship between artwork width using temporal, dimensional and copyright-related characteristics.
+
+### Assumptions
+
+The assumptions to be made so that the multiple regression model is valid is that the relationship between each explanatory variable and the continuous outcome must be linear. So in this case, each explanatory variable must have a linear relationship with *width*. Another assumption to be made about the data is that the artwork is independent of each other meaning that they don't influence each other. Another assumption to be made is that the residuals have constant variance (homoscedasticity). Another assumption to be made is that there is no multicollinearity. Multicollinearity is when predictors are highly correlated with each other. If multicollinearity is present, it can give incorrect regression coefficients and reduce reliability of the individual effects of the predictors (Montgomery et al., 2012).
+
+### Diagnostics and Model Checks
+
+In this section, diagnostics will be run to see if the multiple regression model is satisfactory for the analysis. To check the linearity of the data, a fitted vs residual plot will be used to assess the data. The homoscedasticity of the data can also be assessed in the plot. In the residuals vs fitted plot, many of the observations congregated at around 2500 units. Using *summary()* on the residuals and *range()* on the fitted observations, it shows that there is a large range going from negative values to to very large numbers. This implies that the model is being influenced by extreme values. To check for normality, a Q-Q plot will be used. In the Q-Q plot, the residuals follow a line around the middle which indicates that the middle of the data is approximately normal. However, the tail end of the line slightly curves which indicates extreme values deviating from normality.
+```{r}
+multiple_reg_table <- na.omit(data.frame(width = artwork_width,
+                                         year = artwork_year,
+                                         height = artwork_height,
+                                         copyright = artwork_copyright))
+
+multiple_model <- lm(multiple_reg_table$width ~ multiple_reg_table$year +
+                       multiple_reg_table$height +
+                       multiple_reg_table$copyright)
+plot(multiple_model, which = 1)
+
+range(multiple_model$fitted.values)
+summary(multiple_model$residuals)
+
+qqnorm(multiple_model$residuals)
+```
+
+### Fallback Strategy
+
+In the case that the multiple regression model is unfit for this research aim due to the model not satisfying the assumptions, a fallback strategy will be implemented. As seen in the diagnostics, *width* has extreme values that heavily skew the data. To improve this, a log transformation will be implemented so that the data can be scaled more appropriately for the model (Montgomery et al., 2012). Heteroscedasticity can also be through log transformations as it allows for the data to be non constant. If the data is non normal and outliers affect the model, an alternative method such as robust regression can be used (Montgomery et al., 2012).
+
+# Conclusion
+In conclusion, this plan outlines the relationships between the artwork variables. The data would be cleaned and prepared accordingly. The most suitable method will be used to analyse each question and a fall back strategy will be implemented if assumptions are not met. The methods proposed will be Welch's t-test, chi square of independence, simple linear regression and multiple linear regression.
+# Reference List
+Montgomery, D.C., Peck, E.A. and Vining, G.G. (2012) *Introduction to Linear Regression Analysis*. 5th edn. Hoboken: Wiley.
+
+James, G., Witten, D., Hastie, T. and Tibshirani, R. (2021) *An Introduction to Statistical Learning: with Applications in R*. 2nd edn. New York: Springer.
+
+Bruce, P., Bruce, A. and Gedeck, P. (2020) *Practical statistics for data scientists: 50+ essential concepts using R and Python*. 2nd edn. Sebastopol, CA: O’Reilly Media.
+
+Agresti, A. (2018) *An introduction to categorical data analysis*. 3rd edn. Hoboken, NJ: Wiley.
